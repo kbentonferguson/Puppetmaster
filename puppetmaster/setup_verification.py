@@ -80,7 +80,7 @@ def _validate(store, model: str, nonce: str, fixture: Path) -> str:
         return "Expected exactly one task; disable retries and reuse."
     task = tasks[0]
     payload = task.payload
-    wire = model.removeprefix("codex/")
+    wire = str(payload.get("pinned_adapter_model_name") or "")
     identity = {"model": wire, "pinned_model": model,
                 "pinned_adapter_model_name": wire, "router_model_id": model,
                 "auto_route": False, "allowed_model_ids": [model]}

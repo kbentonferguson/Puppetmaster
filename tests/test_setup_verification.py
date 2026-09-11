@@ -24,6 +24,8 @@ from puppetmaster.models import Artifact, ArtifactType, Task, TaskStatus
 MODEL = 'codex/test-model'
 FIXTURE = Path('/fixture/verification.txt')
 NONCE = 'a' * 64
+PIN = 'codex/gpt-5-6-sol'
+WIRE = 'gpt-5.6-sol'
 
 
 def require_process_discovery(test):
@@ -58,6 +60,37 @@ class ProbeStore:
     def list_usage_observations(self, job, attempt_id): return self.usage
     def list_artifacts(self, job): return self.artifacts
     def status_snapshot(self, job, compact): return {'delivery': self.delivery}
+
+
+def registry_wire_store():
+    """A probe store whose pin has a dashed registry id and dotted wire name."""
+    store = ProbeStore()
+    task = replace(store.task, payload={
+        'model': WIRE, 'pinned_model': PIN,
+        'pinned_adapter_model_name': WIRE, 'router_model_id': PIN,
+        'auto_route': False, 'allowed_model_ids': [PIN]})
+    store.task = task
+    store.tasks = [task]
+    store.attempts = [replace(store.attempts[0], model=WIRE)]
+    store.artifacts = [
+        store.artifacts[0],
+        replace(store.artifacts[1], payload={**store.artifacts[1].payload, 'model': WIRE}),
+    ]
+    return store
+
+
+class RegistryWireIdentityTests(unittest.TestCase):
+    """The pinned wire identity is the persisted pin, not the id string."""
+
+    def test_dashed_registry_id_validates_against_its_dotted_wire_name(self):
+        self.assertEqual(verification._validate(registry_wire_store(), PIN, NONCE, FIXTURE), '')
+
+    def test_another_models_wire_name_is_still_rejected(self):
+        store = registry_wire_store()
+        store.attempts = [replace(store.attempts[0], model='gpt-5.5')]
+        self.assertEqual(
+            verification._validate(store, PIN, NONCE, FIXTURE),
+            'Execution ledger does not prove one fresh attempt on the requested model.')
 
 
 class SuccessPredicateTests(unittest.TestCase):
