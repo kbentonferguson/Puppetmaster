@@ -77,6 +77,24 @@ class ArtifactStatusCompatTests(unittest.TestCase):
         self.assertEqual(artifact.claim_support_status, CLAIM_SUPPORT_WORKER_ASSERTED)
         self.assertFalse(durable_admission_allowed(artifact, peers=[]))
 
+    def test_worker_payload_cannot_self_certify_grounding(self) -> None:
+        with TemporaryDirectory() as tmp:
+            store = SwarmStore(Path(tmp) / ".puppetmaster")
+            store.init()
+            job = store.create_job("worker grounding")
+            artifact = _finding(
+                job_id=job.id,
+                payload={
+                    "claim": "I am grounded",
+                    "grounding_status": "grounded",
+                },
+                evidence=["adapter:agentic"],
+            )
+            store.save_artifact(artifact)
+            self.assertEqual(artifact.grounding_status, GROUNDING_CITED)
+            self.assertFalse(durable_admission_allowed(artifact, store=store))
+            self.assertIsNone(maybe_admit_finding_as_gist(store, artifact))
+
     def test_verification_result_is_criterion_status_not_parse_probability(self) -> None:
         artifact = Artifact(
             job_id="j",

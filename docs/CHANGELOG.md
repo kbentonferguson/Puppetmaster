@@ -1,5 +1,11 @@
 ## Unreleased
 
+**Workers cannot declare their own findings independently grounded.**
+
+- `grounding_status` now comes from the persisted host field or cited evidence,
+  never from a worker-controlled payload label. A worker can no longer promote
+  its own unsupported claim into durable memory by writing `grounded`.
+
 ## v1.27.19 — 2026-09-13
 
 **Provider-qualified agentic identities skip discovery-slug membership (#197).**

@@ -228,9 +228,6 @@ def infer_grounding_status(artifact: Any) -> str:
     )
     if existing:
         return normalize_grounding_status(existing)
-    payload = _payload_of(artifact)
-    if payload.get("grounding_status"):
-        return normalize_grounding_status(payload.get("grounding_status"))
     evidence = (
         artifact.get("evidence")
         if isinstance(artifact, dict)
