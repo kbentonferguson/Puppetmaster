@@ -1,5 +1,13 @@
 ## Unreleased
 
+**Fallback reloads the registry epoch selected after agentic catalog refresh.**
+
+- Auto-routing now persists any catalog refresh, not only newly added models,
+  before binding task registry authority. A later quota fallback therefore
+  reloads the exact epoch it selected instead of failing on digest drift.
+- A generated Codex-lane regression covers a no-new-model refresh whose tag
+  normalization previously changed the in-memory digest without changing disk.
+
 ## v1.27.19 — 2026-09-13
 
 **Provider-qualified agentic identities skip discovery-slug membership (#197).**
